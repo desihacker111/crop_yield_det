@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Crop Yield Prediction</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: linear-gradient(135deg, #0a0f1c, #0e2b4c, #38b6ff);
+      background-size: 400% 400%;
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .main-container {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+    }
+
+    .top-section {
+      background-color: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 2px solid #38b6ff;
+      border-radius: 20px;
+      padding: 30px 20px;
+      text-align: center;
+      box-shadow: 0 0 8px #38b6ff, 0 0 16px #38b6ff inset;
+    }
+
+    .top-section h1 {
+      font-size: 36px;
+      color: #99e6ff;
+      text-shadow: 0 0 10px #38b6ff;
+    }
+
+    .bottom-section {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      border: 2px solid #38b6ff;
+      border-radius: 25px;
+      padding: 40px 30px;
+      text-align: center;
+      box-shadow: 0 0 12px #38b6ff, 0 0 20px #38b6ff inset;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      margin-top: 10px;
+    }
+
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+
+    .form-group {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    label {
+      font-size: 16px;
+      color: #d9faff;
+      text-align: left;
+    }
+
+    input {
+      padding: 16px;
+      border-radius: 10px;
+      border: none;
+      background: rgba(255, 255, 255, 0.08);
+      color: #e6f9ff;
+      font-size: 17px;
+      box-shadow: inset 0 0 5px #99e6ff;
+    }
+
+    input:focus {
+      outline: none;
+      box-shadow: 0 0 8px #38b6ff, 0 0 12px #99e6ff;
+    }
+
+    button {
+      padding: 18px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(90deg, #99e6ff, #38b6ff);
+      color: #000;
+      font-weight: bold;
+      font-size: 20px;
+      cursor: pointer;
+      box-shadow: 0 0 10px #38b6ff, 0 0 18px #99e6ff;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    button:hover {
+      background: linear-gradient(90deg, #38b6ff, #99e6ff);
+      box-shadow: 0 0 16px #99e6ff, 0 0 24px #38b6ff;
+      transform: scale(1.05);
+    }
+
+    h3 {
+      margin-top: 30px;
+      font-size: 22px;
+      color: #99e6ff;
+      text-shadow: 0 0 10px #38b6ff;
+    }
+
+    #loadingAnimation {
+      margin-top: 25px;
+      text-align: center;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .spinner {
+      margin: 0 auto 12px;
+      width: 40px;
+      height: 40px;
+      border: 4px solid #99e6ff;
+      border-top: 4px solid #38b6ff;
+      border-radius: 50%;
+    }
+
+    @media (max-width: 600px) {
+      .form-row {
+        flex-direction: column;
+      }
+
+      .top-section h1 {
+        font-size: 26px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <div class="top-section">
+      <h1>🌾 Crop Yield Prediction 🌿</h1>
+    </div>
+
+    <div class="bottom-section">
+      <form id="predictionForm" action="/predict" method="POST">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="year">Year:</label>
+            <input type="number" id="year" name="year" required placeholder="e.g. 2024" value="{{ request.form.year }}">
+
+            <label for="rain">Average Rainfall (mm/year):</label>
+            <input type="number" step="any" id="rain" name="rain" required placeholder="e.g. 1200" value="{{ request.form.rain }}">
+
+            <label for="pesticide">Pesticides (tonnes):</label>
+            <input type="number" step="any" id="pesticide" name="pesticide" required placeholder="e.g. 180" value="{{ request.form.pesticide }}">
+          </div>
+
+          <div class="form-group">
+            <label for="area">Area:</label>
+            <input type="text" id="area" name="area" required placeholder="e.g. Uttar Pradesh" value="{{ request.form.area }}">
+          
+            <label for="crop">Crop:</label>
+            <input type="text" id="crop" name="crop" required placeholder="e.g. Rice" value="{{ request.form.crop }}">
+          
+            <label for="temp">Average Temperature (°C):</label>
+            <input type="number" step="any" id="temp" name="temp" required placeholder="e.g. 25" value="{{ request.form.temp }}">
+          </div>
+</div> <!-- Added missing closing div for form-row -->          
+
+        <button type="submit">🔮 Predict Yield</button>
+      </form>
+
+      <div id="loadingAnimation" class="hidden">
+        <div class="spinner"></div>
+        <p>Predicting crop yield... 🌱</p>
+      </div>
+
+      {% if prediction_text %}
+        <h3>{{ prediction_text }}</h3>
+      {% endif %}
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("predictionForm");
+    const loading = document.getElementById("loadingAnimation");
+
+    form.addEventListener("submit", function () {
+      loading.classList.remove("hidden");
+    });
+  </script>
+</body>
+</html>

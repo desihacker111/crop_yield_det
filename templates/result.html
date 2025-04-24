@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Yield Analysis - {{ crop }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<style>
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+    body {
+        font-family: 'Orbitron', sans-serif;
+        background: linear-gradient(135deg, #0a0f1c, #0e2b4c, #38b6ff);
+color: #99e6ff;
+            min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        padding: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 2px solid #38b6ff;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 0 15px rgba(56, 182, 255, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(56, 182, 255, 0.5);
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .prediction-card {
+            text-align: center;
+            background: rgba(56, 182, 255, 0.1);
+        }
+
+        .prediction-value {
+            font-size: 3em;
+            font-weight: bold;
+            color: #38b6ff;
+            text-shadow: 0 0 10px rgba(56, 182, 255, 0.5);
+            margin: 20px 0;
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px rgba(56, 182, 255, 0.5); }
+            to { text-shadow: 0 0 20px rgba(56, 182, 255, 0.8), 0 0 30px rgba(153, 230, 255, 0.6); }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 15px;
+            border-radius: 15px;
+        text-align: center;
+    }
+    
+        .stat-value {
+        font-size: 1.5em;
+            font-weight: bold;
+            color: #38b6ff;
+        margin-bottom: 5px;
+    }
+    
+        .stat-label {
+            font-size: 0.9em;
+            color: #99e6ff;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            height: 400px;
+            margin: 20px 0;
+        }
+
+        h1, h2 {
+            color: #99e6ff;
+            text-shadow: 0 0 10px rgba(56, 182, 255, 0.5);
+            margin-bottom: 20px;
+        text-align: center;
+        }
+
+        .back-button {
+            display: inline-block;
+        padding: 15px 30px;
+        background: linear-gradient(90deg, #38b6ff, #99e6ff);
+color: #000;
+        text-decoration: none;
+        border-radius: 12px;
+            font-weight: bold;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin: 20px auto;
+            display: block;
+            width: fit-content;
+        }
+
+        .back-button:hover {
+            transform: scale(1.05);
+            background: linear-gradient(90deg, #99e6ff, #38b6ff);
+            box-shadow: 0 0 16px #99e6ff, 0 0 24px #38b6ff;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            .prediction-value {
+                font-size: 2em;
+            }
+        }
+
+        .highlight {
+            background: rgba(56, 182, 255, 0.2) !important;
+        }
+        .high-accuracy { background: rgba(46, 204, 113, 0.2) !important; }
+        .medium-accuracy { background: rgba(241, 196, 15, 0.2) !important; }
+        .low-accuracy { background: rgba(231, 76, 60, 0.2) !important; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card full-width prediction-card">
+            <h1>🌾 Crop Yield Analysis for {{ crop }} 🌿</h1>
+        <div class="prediction-value">
+                {{ prediction }} hg/ha
+            </div>
+            <p>Predicted Yield for Year {{ year }}</p>
+        </div>
+
+        <div class="card full-width">
+            <h2>📊 Statistical Overview</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value">{{ avg_yield }}</div>
+                    <div class="stat-label">Average Yield (hg/ha)</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ max_yield }}</div>
+                    <div class="stat-label">Highest Yield (hg/ha)</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ min_yield }}</div>
+                    <div class="stat-label">Lowest Yield (hg/ha)</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ (prediction - avg_yield)|round(2) }}</div>
+                    <div class="stat-label">Prediction vs Average</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card full-width">
+            <h2>📊 Comprehensive Analysis</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value">{{ avg_yield }}</div>
+                    <div class="stat-label">Average Yield (hg/ha)</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ std_yield }}</div>
+                    <div class="stat-label">Standard Deviation</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ growth_rate }}%</div>
+                    <div class="stat-label">Historical Growth Rate</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ recent_trend }}%</div>
+                    <div class="stat-label">5-Year Trend</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ pred_vs_avg }}%</div>
+                    <div class="stat-label">Prediction vs Average</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ pred_vs_last }}%</div>
+                    <div class="stat-label">Prediction vs Last Year</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card full-width">
+            <h2>📈 Historical Trend Analysis</h2>
+            <div class="chart-container" id="trendChart"></div>
+        </div>
+
+        <div class="card full-width">
+            <h2>📊 Yield Distribution</h2>
+            <div class="chart-container" id="distributionChart"></div>
+        </div>
+
+<div class="card full-width">
+            <h2>🎯 Prediction Accuracy Analysis</h2>
+            <div class="stats-grid">
+                <div class="stat-item highlight">
+                    <div class="stat-value">{{ prediction }}</div>
+                    <div class="stat-label">Predicted Yield (hg/ha)</div>
+                </div>
+                {% if last_actual %}
+                <div class="stat-item">
+                    <div class="stat-value">{{ last_actual }}</div>
+                    <div class="stat-label">Last Actual Yield (hg/ha)</div>
+                </div>
+                <div class="stat-item {% if accuracy > 90 %}high-accuracy{% elif accuracy > 70 %}medium-accuracy{% else %}low-accuracy{% endif %}">
+                    <div class="stat-value">{{ accuracy }}%</div>
+                    <div class="stat-label">Prediction Accuracy</div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="chart-container" id="actualVsPredicted"></div>
+        </div>
+
+<div class="card full-width">
+        <a href="/" class="back-button">🔄 Make Another Prediction</a>
+</div>
+    </div>
+
+    <script>
+        const years = {{ years|tojson }};
+        const yields = {{ yields|tojson }};
+        const prediction = {{ prediction }};
+        const currentYear = {{ year }};
+
+        // Historical Trend Chart
+        Plotly.newPlot('trendChart', [{
+            x: years,
+            y: yields,
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: 'Historical Yield',
+            line: {color: '#38b6ff', width: 2},
+            marker: {size: 8}
+        }, {
+            x: [years[years.length-1], currentYear],
+            y: [yields[yields.length-1], prediction],
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: 'Prediction',
+            line: {color: '#ff3838', width: 2, dash: 'dot'},
+            marker: {size: 10}
+        }], {
+            title: 'Historical Yield Trend with Prediction',
+            paper_bgcolor: 'rgba(255,255,255,0)',
+            plot_bgcolor: 'rgba(255,255,255,0.95)',
+            font: {color: '#0a0f1c'},
+            margin: {t: 50, r: 50, b: 50, l: 50},
+            xaxis: {
+                title: 'Year',
+                gridcolor: '#e0e0e0',
+                zerolinecolor: '#e0e0e0'
+            },
+            yaxis: {
+                title: 'Yield (hg/ha)',
+                gridcolor: '#e0e0e0',
+                zerolinecolor: '#e0e0e0'
+            }
+        });
+
+        // Distribution Chart
+        Plotly.newPlot('distributionChart', [{
+            y: yields,
+            type: 'box',
+            name: 'Yield Distribution',
+            marker: {color: '#38b6ff'},
+            boxpoints: 'all',
+            jitter: 0.3,
+            pointpos: -1.8
+        }, {
+            y: [prediction],
+            type: 'scatter',
+            mode: 'markers',
+            name: 'Current Prediction',
+            marker: {
+                color: '#ff3838',
+                size: 12,
+                symbol: 'diamond'
+            }
+        }], {
+            title: 'Yield Distribution Analysis',
+            paper_bgcolor: 'rgba(255,255,255,0)',
+            plot_bgcolor: 'rgba(255,255,255,0.95)',
+            font: {color: '#0a0f1c'},
+            margin: {t: 50, r: 50, b: 50, l: 50},
+            yaxis: {
+                title: 'Yield (hg/ha)',
+                gridcolor: '#e0e0e0',
+                zerolinecolor: '#e0e0e0'
+            }
+        });
+
+        // Actual vs Predicted Plot
+        const actualYears = {{ actual_years|tojson }};
+        const actualYields = {{ actual_yields|tojson }};
+        const predictedYield = {{ prediction }};
+
+        Plotly.newPlot('actualVsPredicted', [
+            {
+                x: actualYears,
+                y: actualYields,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Historical Actual Yield',
+                line: {color: '#2ecc71', width: 2},
+                marker: {size: 8}
+            },
+            {
+                x: [currentYear],
+                y: [predictedYield],
+                type: 'scatter',
+                mode: 'markers',
+                name: 'Current Prediction',
+                marker: {
+                    color: '#e74c3c',
+                    size: 12,
+                    symbol: 'star',
+                    line: {
+                        color: '#c0392b',
+                        width: 2
+                    }
+                }
+            }
+        ], {
+            title: 'Actual vs Predicted Yield for {{ area }}',
+            paper_bgcolor: 'rgba(255,255,255,0)',
+            plot_bgcolor: 'rgba(255,255,255,0.95)',
+            font: {color: '#0a0f1c'},
+            margin: {t: 50, r: 50, b: 50, l: 50},
+            xaxis: {
+                title: 'Year',
+                gridcolor: '#e0e0e0',
+                zerolinecolor: '#e0e0e0'
+            },
+            yaxis: {
+                title: 'Yield (hg/ha)',
+                gridcolor: '#e0e0e0',
+                zerolinecolor: '#e0e0e0'
+            }
+        });
+    </script>
+</body>
+</html>
